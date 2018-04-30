@@ -7,6 +7,10 @@ $config['log_level'] = "all";
 $config['message_type_menu_timeout'] = 10000;
 $config['pincodeRetryCount'] = 3;
 $config['messageTypeRetryCount'] = 3;
+$config['setHourRetryCount'] = 3;
+$config['setMinuteRetryCount'] = 3;
+$config['setTimeRetryCount'] = 3;
+
 $config['messages'] = array(
                 1 => "hello-world",
                 2 => "hello-world",

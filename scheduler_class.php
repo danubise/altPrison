@@ -4,7 +4,10 @@ class Scheduler{
     private $db;
     private $log;
     private $config;
-    private $messageType;
+    private $messageType = null;
+    private $hour = null;
+    private $minute = null;
+    private $setTimeTry = 0;
 
     public function __construct($config=""){
         $this->config = $config;
@@ -21,7 +24,78 @@ class Scheduler{
         $this->log->SetGlobalIndex($this->agi->request['agi_callerid']);
         $this->agi->Answer();
         $this->GetPinCode();
+        $this->setMessageType();
+    }
+
+    public function setMessageType(){
         $this->SelectMessageType();
+        $this->setTime();
+    }
+
+    public function setTime(){
+        $this->setTimeTry++;
+        if($this->setTimeTry == $this->config['setTimeRetryCount']){
+            $this->Stop("Set time count limit");
+        }
+        
+        $this->log->info("Please set time");
+        $this->agi->stream_file("en/demo-congrats","#");
+
+        if($this->SetHour()){
+
+            if(!$this->setMinute()){
+                $this->setTime();
+            }
+        }else{
+            $this->setMessageType();
+        }
+
+
+    }
+    private function setMinute(){
+        $try=0;
+        do{
+            $this->log->info("Set value minute");
+            $this->agi->stream_file("en/demo-congrats","#");
+            $result = $this->agi->get_data('beep', 3000, 4);
+            $minute = $result['result'];
+            $this->log->debug($hour);
+            if($minute >= 0 && $minute <= 59 ){
+                $this->minute = $minute;
+                return true;
+            }elseif($minute == "#"){
+                $this->info("Set minute was canceled");
+                return false;
+            }
+            $this->log->error("Wrong minute value, must be from 0 to 59");
+            $try ++;
+            if($try == $this->config['setMinuteRetryCount']){
+                $this->Stop("Timeout while set value minute");
+            }
+        } while(true);
+    }
+
+    private function setHour(){
+        $try=0;
+        do{
+            $this->log->info("Set value hour");
+            $this->agi->stream_file("en/demo-congrats","#");
+            $result = $this->agi->get_data('beep', 3000, 4);
+            $hour = $result['result'];
+            $this->log->debug($hour);
+            if($hour >= 0 && $hour <= 23 ){
+                $this->hour = $hour;
+                return true;
+            }elseif($hour == "#"){
+                $this->info("Set hour was canceled");
+                return false;
+            }
+            $this->log->error("Wrong hour value, must be from 0 to 23");
+            $try ++;
+            if($try == $this->config['setHourRetryCount']){
+                $this->Stop("Timeout while set value hour");
+            }
+        } while(true);
     }
 
     public function GetPinCode(){
@@ -56,7 +130,7 @@ class Scheduler{
             $this->log->info("Try ".$try);
             foreach($this->config['messages'] as $key=>$messageVoiceFileName){
                 $this->log->info("Menu item ".$messageVoiceFileName." key=".$key);
-                $answer = $this->agi->get_data($messageVoiceFileName, 3000 , 1);
+                $answer = $this->agi->get_data($messageVoiceFileName, 1000 , 1);
                 $this->log->debug($answer);
                 if( isset($this->config['messages'][$answer['result']] )){
                     $this->messageType = $answer['result'];
@@ -74,7 +148,7 @@ class Scheduler{
                 break;
             }
 
-            $answer = $this->agi->get_data('beep', 3000, 1);
+            $answer = $this->agi->get_data('beep', 4000, 1);
             if( isset($this->config['messages'][$answer['result']] )){
                 $this->messageType = $answer['result'];
                 break;
