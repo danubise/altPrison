@@ -25,6 +25,23 @@ class Scheduler{
         $this->agi->Answer();
         $this->GetPinCode();
         $this->setMessageType();
+        $this->SaveSchedule();
+    }
+
+    public function SaveSchedule(){
+        $this->log->info("Save schedule function");
+        $this->agi->stream_file("en/demo-congrats","#");
+        $result = $this->agi->get_data('beep', $this->config['saveScheduleTimeOut'], 1);
+        $saveAnswer = $result['result'];
+        if($saveAnswer == 1) {
+            $this->log->info("Saving schedule");
+            $this->addSchedule();
+
+        }else{
+            //$this->log->info("The schedule was canceled");
+            $this->Stop("The schedule was canceled from main menu");
+        }
+
     }
 
     public function setMessageType(){
@@ -37,7 +54,7 @@ class Scheduler{
         if($this->setTimeTry == $this->config['setTimeRetryCount']){
             $this->Stop("Set time count limit");
         }
-        
+
         $this->log->info("Please set time");
         $this->agi->stream_file("en/demo-congrats","#");
 
@@ -59,7 +76,7 @@ class Scheduler{
             $this->agi->stream_file("en/demo-congrats","#");
             $result = $this->agi->get_data('beep', 3000, 4);
             $minute = $result['result'];
-            $this->log->debug($hour);
+            $this->log->debug($minute);
             if($minute >= 0 && $minute <= 59 ){
                 $this->minute = $minute;
                 return true;

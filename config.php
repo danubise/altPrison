@@ -10,6 +10,7 @@ $config['messageTypeRetryCount'] = 3;
 $config['setHourRetryCount'] = 3;
 $config['setMinuteRetryCount'] = 3;
 $config['setTimeRetryCount'] = 3;
+$config['saveScheduleTimeOut'] = 5000;
 
 $config['messages'] = array(
                 1 => "hello-world",
