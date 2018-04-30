@@ -11,7 +11,7 @@ class Scheduler{
 
     public function __construct($config=""){
         $this->config = $config;
-        //$this->db = new DB($config);
+        $this->db = new db($config['mysql']);
         $this->agi = new AGI();
         $this->log = new Log($config);
         $this->log->info( "Start" );
@@ -122,8 +122,11 @@ class Scheduler{
         $try=0;
         do{
             $result = $this->agi->get_data('beep', 3000, 4);
-            $keys = $result['result'];
+            $pincode = $result['result'];
             //Проверка пинкод в базе
+            $dbCheck = $this->db->select("`groupid` from `pincode` where `pincode`='".$pincode."'", true);
+            $this->log->debug($this->db->query->last);
+            $this->log->info($dbCheck);
             if($keys == "111" ){
                 $this->log->info("Pincode successful");
                 break;
