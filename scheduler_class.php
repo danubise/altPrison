@@ -31,13 +31,12 @@ class Scheduler{
 
     public function SaveSchedule(){
         $this->log->info("Save schedule function");
-        $this->agi->stream_file("en/demo-congrats","#");
-        $result = $this->agi->get_data('beep', $this->config['saveScheduleTimeOut'], 1);
+        $result = $this->agi->get_data('en/demo-congrats', $this->config['saveScheduleTimeOut'], 1);
         $saveAnswer = $result['result'];
         if($saveAnswer == 1) {
             $this->log->info("Saving schedule");
             $this->addSchedule();
-
+            $this->Stop("The schedule was successful saved");
         }else{
             //$this->log->info("The schedule was canceled");
             $this->Stop("The schedule was canceled from main menu");
@@ -48,10 +47,11 @@ class Scheduler{
     private function addSchedule(){
         $this->db->insert("schedule", array(
           "groupid" => $this->groupid,
-          "time" => $hour.":".$minute,
+          "time" => $this->hour.":".$this->minute.":00",
           "voicefilename" => $this->config["messages"][$this->messageType],
           "status" => 1
         ));
+        $this->log->debug($this->db->query->last);
     }
 
     public function setMessageType(){
@@ -66,7 +66,6 @@ class Scheduler{
         }
 
         $this->log->info("Please set time");
-        $this->agi->stream_file("en/demo-congrats","#");
 
         if($this->SetHour()){
 
@@ -83,9 +82,8 @@ class Scheduler{
         $try=0;
         do{
             $this->log->info("Set value minute");
-            $this->agi->stream_file("en/demo-congrats","#");
-            $result = $this->agi->get_data('beep', 3000, 4);
-            $minute = $result['result'];
+            $result = $this->agi->get_data('en/demo-congrats', 3000, 2);
+            $minute = trim($result['result']);
             $this->log->debug($minute);
             if($minute >= 0 && $minute <= 59 ){
                 $this->minute = $this->lessTen($minute);
@@ -95,6 +93,7 @@ class Scheduler{
                 return false;
             }
             $this->log->error("Wrong minute value, must be from 0 to 59");
+            $this->agi->stream_file("en/beeperr","#");
             $try ++;
             if($try == $this->config['setMinuteRetryCount']){
                 $this->Stop("Timeout while set value minute");
@@ -113,9 +112,8 @@ class Scheduler{
         $try=0;
         do{
             $this->log->info("Set value hour");
-            $this->agi->stream_file("en/demo-congrats","#");
-            $result = $this->agi->get_data('beep', 3000, 4);
-            $hour = $result['result'];
+            $result = $this->agi->get_data('en/demo-congrats', 3000, 2);
+            $hour = trim($result['result']);
             $this->log->debug($hour);
             if($hour >= 0 && $hour <= 23 ){
                 $this->hour = $this->lessTen($hour);
@@ -125,6 +123,7 @@ class Scheduler{
                 return false;
             }
             $this->log->error("Wrong hour value, must be from 0 to 23");
+            $this->agi->stream_file("en/beeperr","#");
             $try ++;
             if($try == $this->config['setHourRetryCount']){
                 $this->Stop("Timeout while set value hour");
