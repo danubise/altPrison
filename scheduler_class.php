@@ -44,6 +44,15 @@ class Scheduler{
 
     }
 
+    private function addSchedule(){
+        $this->db->insert("schedule", array(
+          "groupid" => $this->groupid,
+          "time" => $hour.":".$minute,
+          "voicefilename" => $this->config["messages"][$this->messageType],
+          "status" => 1
+        ));
+    }
+
     public function setMessageType(){
         $this->SelectMessageType();
         $this->setTime();
@@ -78,7 +87,7 @@ class Scheduler{
             $minute = $result['result'];
             $this->log->debug($minute);
             if($minute >= 0 && $minute <= 59 ){
-                $this->minute = $minute;
+                $this->minute = $this->lessTen($minute);
                 return true;
             }elseif($minute == "#"){
                 $this->info("Set minute was canceled");
@@ -92,6 +101,13 @@ class Scheduler{
         } while(true);
     }
 
+    private function lessTen($digit){
+        if($digit < 10) {
+            $digit ="0".$digit;
+        }
+        return $digit;
+    }
+
     private function setHour(){
         $try=0;
         do{
@@ -101,7 +117,7 @@ class Scheduler{
             $hour = $result['result'];
             $this->log->debug($hour);
             if($hour >= 0 && $hour <= 23 ){
-                $this->hour = $hour;
+                $this->hour = $this->lessTen($hour);
                 return true;
             }elseif($hour == "#"){
                 $this->info("Set hour was canceled");
