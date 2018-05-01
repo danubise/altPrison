@@ -6,6 +6,7 @@ $config['log_write'] = "file";
 $config['log_level'] = "all";
 $config['message_type_menu_timeout'] = 10000;
 $config['pincodeRetryCount'] = 3;
+$config['pincodeTimeOut'] = 10000;
 $config['messageTypeRetryCount'] = 3;
 $config['setHourRetryCount'] = 3;
 $config['setMinuteRetryCount'] = 3;

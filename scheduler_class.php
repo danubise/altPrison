@@ -8,6 +8,7 @@ class Scheduler{
     private $hour = null;
     private $minute = null;
     private $setTimeTry = 0;
+    private $groupid = null;
 
     public function __construct($config=""){
         $this->config = $config;
@@ -137,13 +138,14 @@ class Scheduler{
         $this->agi->stream_file("en/demo-congrats","#");
         $try=0;
         do{
-            $result = $this->agi->get_data('beep', 3000, 4);
-            $pincode = $result['result'];
+            $result = $this->agi->get_data('beep', $this->config['pincodeTimeOut'], 4);
+            $pincode = trim($result['result']);
             //Проверка пинкод в базе
-            $dbCheck = $this->db->select("`groupid` from `pincode` where `pincode`='".$pincode."'", true);
+            $dbCheck = $this->db->select("`groupid` from `pincode` where `pincode`='".$pincode."'", false);
             $this->log->debug($this->db->query->last);
-            $this->log->info($dbCheck);
-            if($keys == "111" ){
+            $this->log->info("Group id is :".$dbCheck);
+            if($dbCheck != null ){
+                $this->groupid = $dbCheck;
                 $this->log->info("Pincode successful");
                 break;
             }
