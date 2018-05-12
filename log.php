@@ -1,8 +1,7 @@
 <?php
     /**
-     * Created by PhpStorm.
      * User: slava
-     * Date: 09.10.15
+     * Date: 12.05.2018
      * Time: 13:56
      * Phone: 89878130785
      * Email: danubise@gmail.com
@@ -10,7 +9,7 @@
      */
     /*
      * config
-     *  log_write   file/null (file) запись в файл или выводи на монитор
+     *  log_write   file/both/null (file) запись в файл или выводи на монитор
      *  log_file    имя файла в который будет вестись запись данных прим.test.log
      *  log_differentfiles true/false (false) возможность записывать в разный файлы, в зависимости от Level прим. info.test.log
      *  log_timetype unix/normal (normal) формат времени в лог файле
