@@ -14,7 +14,7 @@ class Ringout{
         $this->ami = new Ami();
     }
     public function process(){
-        $this->checkNumbers();
+        $newNumbers = $this->checkNumbers();
 
     }
     function getAvailableTask(){
@@ -29,6 +29,11 @@ class Ringout{
         $newNumbers = $this->db->select("* FROM `dial` WHERE `dialcount` < 3 ORDER BY `dialcount` ASC LIMIT ".$limit);
         $this->log->debug($this->db->query->last);
         $this->log->debug($newNumbers);
+        if($newNumbers == null){
+            $this->log->info("Have no any number for dial. Exit");
+            die;
+        }
+        return $mewNumbers;
     }
 }
 ?>

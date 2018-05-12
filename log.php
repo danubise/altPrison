@@ -124,7 +124,7 @@
             $this->Write();
         }
         private function CheckObject($txt){
-            if(!isset($txt)){
+            if(!isset($txt) || $txt==null){
                 return "Null";
             }
             if(is_string($txt)){
@@ -155,10 +155,15 @@
             if($this->DifferentFile){
                 $FileName=$this->LogMessage->type."_".$FileName;
             }
+            $logLine = $this->LogShow();
+
             if ($this->Write == "file") {
-                file_put_contents($FileName, $this->LogShow(), FILE_APPEND);
-            } else {
-                echo $this->LogShow();
+                file_put_contents($FileName, $logLine, FILE_APPEND);
+            } else if ($this->Write == "both"){
+                file_put_contents($FileName, $logLine, FILE_APPEND);
+                echo $logLine;
+            }else {
+                echo $logLine;
             }
         }
     }
