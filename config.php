@@ -12,7 +12,7 @@ $config['setHourRetryCount'] = 3;
 $config['setMinuteRetryCount'] = 3;
 $config['setTimeRetryCount'] = 3;
 $config['saveScheduleTimeOut'] = 5000;
-
+$config['maxConcurrentCalls'] = 100;
 $config['messages'] = array(
                 1 => "hello-world",
                 2 => "hello-world",
