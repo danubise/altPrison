@@ -5,6 +5,7 @@ class Ringout{
     private $log=null;
     private $ami=null;
     private $socket=null;
+    private $agi=null;
 
     public function __construct($config=""){
         $this->config = $config;
@@ -16,6 +17,10 @@ class Ringout{
     }
 
     public function hangup(){
+        $this->agi = new AGI();
+        $dialid=$this->agi->request['agi_arg_1'];
+        $status=$this->agi->request['agi_arg_2'];
+        $this->log->info("Call to ".$dialid." status ".$status);
         return;
     }
 

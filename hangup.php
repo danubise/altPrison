@@ -8,6 +8,8 @@ include("config.php");
 include("mysqli.php");
 include("log.php");
 include("ringout_class.php");
+include("ami.php");
+include("phpagi.php");
 
 $config['log_write'] = "file"; //file
 
