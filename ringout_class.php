@@ -21,8 +21,22 @@ class Ringout{
 
     function dial($numbers){
         $this->getConnection();
-        foreach ($number as $id=>$numberArray){
+        $amiOriginateConfig= array(
+            'Channel' => 'local/12345678@from-trunk',
+            "Exten" => 0,
+            "Context" => "ringout",
+            "CallerID" => 0
+        );
+        foreach ($numbers as $id=>$numberArray){
+            $amiOriginateConfig['Exten'] = $numberArray['phonenumber'];
+            $amiOriginateConfig['Channel'] = $numberArray['phonenumber'];
+            $amiOriginateConfig['CallerID'] = $numberArray['groupid'];
 
+            $originate = $this->ami->Originate($amiOriginateConfig);
+            $this->log->debug($originate);
+            //fputs($this->socket, $originate);
+            $this->db->update("dial",array('action' => 1, 'dialcount' => $numberArray['dialcount'] + 1), "dialid=".$numberArray['dialid']);
+            $this->log->debug($this->db->query->last);
 
         }
     }
@@ -79,7 +93,7 @@ class Ringout{
 
 
     function checkNumbers(){
-        $inDialCall = $this->db->select ("count(*) from `dial` where `status`= 1", false );
+        $inDialCall = $this->db->select ("count(*) from `dial` where `action` = 1", false );
         $this->log->info("Concurrent calls = ".$inDialCall);
         $limit = $this->config['maxConcurrentCalls'] - $inDialCall;
         $this->log->info("Select new number = ".$limit);
