@@ -31,8 +31,46 @@ class Ringout{
         $this->log->debug($this->db->query->last);
         return;
     }
+    function checkNewTask(){
+    // status 1 - new, 2 -  in progress, 3 - done
+        $newTasks = $this->db->select("* from `schedule` where `status`=1");
+        $this->log->debug($this->db->query->last);
+        $this->log->debug($newTasks);
+        if($newTasks != null){
+            $this->log->info("Adding new task '".count($newTasks)."'");
+            $this->addNumberGroupByTask($newTasks);
+        }
+
+    }
+
+    function addNumberGroupByTask($tasks){
+        foreach ($tasks as $key=>$taskArray){
+            $this->log->info("Adding taskid = '".$taskArray['scheduleid']."'");
+            $newNumbers = $this->db->select("* from `phonenumbers` where `groupid` = ".$taskArray['groupid']);
+            $this->log->info("Adding '".count($newNumbers)."' new numbers");
+            $this->log->debug($newNumbers);
+            if($newNumbers != null){
+                foreach($newNumbers as $numberid => $numberData){
+                    $this->db->insert("dial", array(
+                        "groupid" => $taskArray['groupid'],
+                        "phonenumber" => $numberData['phone'],
+                        "status" => 0,
+                        "scheduleid" => $taskArray['scheduleid'],
+                        "dialcount" => 0,
+                        "action" => 0,
+                        "voicerecord" => $taskArray['voicefilename']
+                    ));
+                    $this->log->debug($this->db->query->last);
+                }
+            }else{
+                $this->log->error("Have no any numbers for this task");
+            }
+        }
+    }
 
     public function process(){
+        $this->checkNewTask();
+        die;
         $newNumbers = $this->checkNumbers();
         $this->dial($newNumbers);
     }
