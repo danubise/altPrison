@@ -14,6 +14,11 @@ class Ringout{
         $this->log->info( "Start Ringout service" );
         $this->ami = new Ami();
     }
+
+    public function hangup(){
+        return;
+    }
+
     public function process(){
         $newNumbers = $this->checkNumbers();
         $this->dial($newNumbers);
@@ -22,19 +27,23 @@ class Ringout{
     function dial($numbers){
         $this->getConnection();
         $amiOriginateConfig= array(
-            'Channel' => 'local/12345678@from-trunk',
-            "Exten" => 0,
-            "Context" => "ringout",
+            //'Channel' => 'local/12345678@from-trunk',
+            "Exten" => "s",
+            "Context" => "ringout_play",
             "CallerID" => 0
         );
         foreach ($numbers as $id=>$numberArray){
             $amiOriginateConfig['Exten'] = $numberArray['phonenumber'];
-            $amiOriginateConfig['Channel'] = $numberArray['phonenumber'];
+            $amiOriginateConfig['Channel'] = "local/".$numberArray['phonenumber']."@ringout";
             $amiOriginateConfig['CallerID'] = $numberArray['groupid'];
+            $amiOriginateConfig['Variable'] = array(
+                "__dialid" => $numberArray['dialid'],
+                "__voicerecord" => $numberArray['voicerecord']
+            );
 
             $originate = $this->ami->Originate($amiOriginateConfig);
             $this->log->debug($originate);
-            //fputs($this->socket, $originate);
+            fputs($this->socket, $originate);
             $this->db->update("dial",array('action' => 1, 'dialcount' => $numberArray['dialcount'] + 1), "dialid=".$numberArray['dialid']);
             $this->log->debug($this->db->query->last);
 
