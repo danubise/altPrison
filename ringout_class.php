@@ -21,6 +21,14 @@ class Ringout{
         $dialid=$this->agi->request['agi_arg_1'];
         $status=$this->agi->request['agi_arg_2'];
         $this->log->info("Call to ".$dialid." status ".$status);
+        $setvalue=array();
+        if($status == "ANSWERED"){
+            $setvalue = array('action' => 0, 'status' => 1);
+        }else{
+            $setvalue = array('action' => 0, 'status' => 0);
+        }
+        $this->db->update( "dial", $setvalue, "dialid=".$dialid);
+        $this->log->debug($this->db->query->last);
         return;
     }
 
