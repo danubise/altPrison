@@ -39,8 +39,36 @@ class Ringout{
         if($newTasks != null){
             $this->log->info("Adding new task '".count($newTasks)."'");
             $this->addNumberGroupByTask($newTasks);
+        }else{
+            $this->log->info("Have no new task");
         }
 
+    }
+
+    function sendemail($taskid, $report){
+        $this->log->info("Send email for task id ".$taskid);
+    }
+
+    function checkForCompleteTask(){
+        $this->log->info("Checking for complete task");
+        //  проверить наличие номеров до которых еще нужно дозвонится, если таковых нет то отключить таску и отправить отчет.
+        $activeTask = $this->db->select ("scheduleid from `schedule` where `status`=2");
+        $this->log->debug($activeTask);
+        foreach ($activeTask as $key=>$scheduleid){
+            $this->log->info("Task with id ".$scheduleid." in progress");
+            $countInprogressNumbers = $this->db->select("count(*) from schedule as s,dial as d where s.scheduleid = d.scheduleid
+                AND d.status=0 AND (s.status=2 AND d.dialcount < 3 OR d.action=1 AND d.dialcount=3) AND s.scheduleid=".$scheduleid, false);
+
+            $this->log->debug($this->db->query->last);
+            $this->log->debug($countInprogressNumbers);
+        }
+        die;
+        $sqlQuery = "select * from schedule as s,dial as d where s.scheduleid = d.scheduleid AND d.status=0 AND (s.status=2 AND d.dialcount < 3 OR d.action=1 AND d.dialcount=3) AND s.scheduleid=13;";
+    }
+
+    function createReport($taskid){
+        $this->log->info("Creating report for task id ".$taskid);
+        $this->sendemail($taskid,"");
     }
 
     function addNumberGroupByTask($tasks){
@@ -50,6 +78,8 @@ class Ringout{
             $this->log->info("Adding '".count($newNumbers)."' new numbers");
             $this->log->debug($newNumbers);
             if($newNumbers != null){
+                $this->db->update("schedule", array("status" => 2), "scheduleid=".$taskArray['scheduleid']);
+                $this->log->debug($this->db->query->last);
                 foreach($newNumbers as $numberid => $numberData){
                     $this->db->insert("dial", array(
                         "groupid" => $taskArray['groupid'],
@@ -63,14 +93,18 @@ class Ringout{
                     $this->log->debug($this->db->query->last);
                 }
             }else{
+                $this->db->update("schedule", array("status" => 3), "scheduleid=".$taskArray['scheduleid']);
+                $this->log->debug($this->db->query->last);
+
                 $this->log->error("Have no any numbers for this task");
             }
         }
     }
 
     public function process(){
+        $this->checkForCompleteTask();
         $this->checkNewTask();
-        die;
+        //die;
         $newNumbers = $this->checkNumbers();
         $this->dial($newNumbers);
     }
