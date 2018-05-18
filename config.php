@@ -2,7 +2,7 @@
 include("internal_config.php");
 
 $config['log_file']=  "/var/log/asterisk/ringing_system.log";
-$config['log_write'] = "both"; //file
+$config['log_write'] = "file"; //file
 $config['log_level'] = "all";
 $config['message_type_menu_timeout'] = 10000;
 $config['pincodeRetryCount'] = 3;
@@ -18,11 +18,25 @@ $config['manager_port']=5038;
 //$config['manager_login']="";
 //$config['manager_password']="";
 $config['messages'] = array(
-                1 => "hello-world",
-                2 => "hello-world",
-                3 => "hello-world",
-                4 => "hello-world"
+                1 => "upravliniemenu",
+                2 => "vtoroemenu"
             );
+$config['notification'] = array(
+                1 => array(
+                        1 => "sbor",
+                        2 => "vulkan2",
+                        3 => "vulkan5",
+                        4 => "krepost",
+                        5 => "uragan3",
+                        6 => "edelveys"
 
-
+                    ),
+                2 => array (
+                        1 => "sbor",
+                        2 => "shum",
+                        3 => "vulkan5",
+                        4 => "krepost",
+                        5 => "uragan3"
+                    )
+            );
 ?>
