@@ -17,7 +17,9 @@ class Ringout{
     }
 
     public function hangup(){
+        $this->log->info("Start Hangup process");
         $this->agi = new AGI();
+        $this->agi->conlog("Hangup process");
         $dialid=$this->agi->request['agi_arg_1'];
         $status=$this->agi->request['agi_arg_2'];
         $this->log->info("Call to ".$dialid." status ".$status);
@@ -62,7 +64,7 @@ class Ringout{
             $this->log->debug($this->db->query->last);
             $this->log->debug($countInprogressNumbers);
         }
-        die;
+        //die;
         $sqlQuery = "select * from schedule as s,dial as d where s.scheduleid = d.scheduleid AND d.status=0 AND (s.status=2 AND d.dialcount < 3 OR d.action=1 AND d.dialcount=3) AND s.scheduleid=13;";
     }
 
