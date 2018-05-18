@@ -56,16 +56,22 @@ class Ringout{
         //  проверить наличие номеров до которых еще нужно дозвонится, если таковых нет то отключить таску и отправить отчет.
         $activeTask = $this->db->select ("scheduleid from `schedule` where `status`=2");
         $this->log->debug($activeTask);
-        foreach ($activeTask as $key=>$scheduleid){
-            $this->log->info("Task with id ".$scheduleid." in progress");
-            $countInprogressNumbers = $this->db->select("count(*) from schedule as s,dial as d where s.scheduleid = d.scheduleid
-                AND d.status=0 AND (s.status=2 AND d.dialcount < 3 OR d.action=1 AND d.dialcount=3) AND s.scheduleid=".$scheduleid, false);
+        if($activeTask != null){
+            foreach ($activeTask as $key=>$scheduleid){
+                $this->log->info("Task with id ".$scheduleid." in progress");
+                $countInprogressNumbers = $this->db->select(" count(*) from schedule as s,dial as d where
+                    s.scheduleid = d.scheduleid AND s.status=2 AND d.status=0 AND (d.dialcount < 3 OR d.action=1)
+                    AND s.scheduleid=".$scheduleid, false);
 
-            $this->log->debug($this->db->query->last);
-            $this->log->debug($countInprogressNumbers);
+                $this->log->debug($this->db->query->last);
+                $this->log->debug($countInprogressNumbers);
+                if($countInprogressNumbers == 0 ){
+                    $this->db->update("schedule", array("status" => 3), "scheduleid=".$scheduleid);
+                    $this->log->debug($this->db->query->last);
+                    $this->createReport($scheduleid);
+                }
+            }
         }
-        //die;
-        $sqlQuery = "select * from schedule as s,dial as d where s.scheduleid = d.scheduleid AND d.status=0 AND (s.status=2 AND d.dialcount < 3 OR d.action=1 AND d.dialcount=3) AND s.scheduleid=13;";
     }
 
     function createReport($taskid){
