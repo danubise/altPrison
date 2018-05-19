@@ -50,10 +50,10 @@ class Report{
                                      ->setKeywords("отчет об оповещении")
                                      ->setCategory("Отчет");
         // Add some data
-        $firstTotal = $this->db->select("count(*) from `dial` where scheduleid=".$this->scheduleid);
+        $firstTotal = $this->db->select("count(*) from `dial` where scheduleid=".$this->scheduleid, false);
         $this->log->debug($this->db->query->last);
         //$firstTotal = 100;
-        $firstNotAnswered = $this->db->select("count(*) from `dial` where dialcount>1 AND scheduleid=".$this->scheduleid);
+        $firstNotAnswered = $this->db->select("count(*) from `dial` where dialcount>1 AND scheduleid=".$this->scheduleid, false);
         $this->log->debug($this->db->query->last);
         //$firstNotAnswered = 20;
 
@@ -66,7 +66,7 @@ class Report{
                     ->setCellValue('B5', 'Не оповещенные номера');
 
         $secondTotal = $firstNotAnswered;
-        $secondNotAnswered = $this->db->select("count(*) from `dial` where dialcount=3 AND scheduleid=".$this->scheduleid);
+        $secondNotAnswered = $this->db->select("count(*) from `dial` where dialcount=3 AND scheduleid=".$this->scheduleid, false);
         $this->log->debug($this->db->query->last);
         //$secondNotAnswered = 15;
 
@@ -79,7 +79,7 @@ class Report{
                     ->setCellValue('B10', 'Не оповещенные номера');
 
         $thirdTotal = $secondNotAnswered;
-        $thirdNotAnswered= $this->db->select("count(*) from `dial` where  status=0 AND dialcount=3 AND scheduleid=".$this->scheduleid);
+        $thirdNotAnswered= $this->db->select("count(*) from `dial` where  status=0 AND dialcount=3 AND scheduleid=".$this->scheduleid, false);
         $this->log->debug($this->db->query->last);
         //$thirdNotAnswered = 15;
 
@@ -147,11 +147,10 @@ class Report{
 
     function saveReport(){
         $objWriter = PHPExcel_IOFactory::createWriter($this->objPHPExcel, 'Excel5');
-        $filename = "notificationreport".$this->$scheduleid.".xls";
+        $filename = "notificationreport".$this->scheduleid.".xls";
         $this->log->info("report file name :".$filename);
         $objWriter->save($filename);
         return $filename;
     }
 }
-exit;
 ?>

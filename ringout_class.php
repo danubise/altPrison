@@ -117,7 +117,7 @@ class Ringout{
         $this->log->info("Creating report for task id ".$taskid);
         $report = new Report($this->config, $taskid);
         $filename = $report->makeReport();
-        $this->log->info("Sending report file :'".$filename."'");
+        //$this->log->info("Sending report file :'".$filename."'");
         $this->sendemail($taskid, $filename);
     }
 
