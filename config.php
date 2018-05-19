@@ -17,6 +17,10 @@ $config['manager_host']="localhost";
 $config['manager_port']=5038;
 //$config['manager_login']="";
 //$config['manager_password']="";
+$config['emailFrom']="sols@sarfsin.ru";
+$config['emailBody']="Отчет об оповещении прикреплен к письму";
+$config['emailTheme']="Отчет об оповещении";
+
 $config['messages'] = array(
                 1 => "upravliniemenu",
                 2 => "vtoroemenu"

@@ -1,4 +1,6 @@
 <?php
+require_once ("Classes/PHPMailer-master/class.phpmailer.php");
+
 class Ringout{
     private $config=null;
     private $db=null;
@@ -48,7 +50,43 @@ class Ringout{
     }
 
     function sendemail($taskid, $report){
+
         $this->log->info("Send email for task id ".$taskid);
+        $email = new PHPMailer();
+        $email->CharSet = 'UTF-8';
+        $email->From      = $this->config['emailFrom'];
+        $email->FromName  = $this->config['emailFrom'];
+        $email->Subject   = $this->config['emailTheme'];
+        $email->Body      = $this->config['emailBody'];
+
+        $emailAddresses = $this->db->select(" g.emails from groups as g , schedule as s  where s.groupid=g.groupid AND s.scheduleid=".$taskid,false);
+        $this->log->debug($this->db->query->last);
+
+        $mails=explode(",",$emailAddresses);
+        foreach($mails as $emailaddress) {
+            $email->AddAddress($emailaddress);
+        }
+
+        $email->AddAttachment( "test.xls" , "test.xls" );
+
+        if(!$email->Send()){
+            $this->log->error( "Message could not be sent.");
+            $this->log->error( "Mailer Error: " . $email->ErrorInfo);
+            $update = array(
+                "send" => "2",
+                "sentdetail" => "Mailer Error: " . $email->ErrorInfo
+            );
+            //$this->db->update("b_invoicemain",$update, "`invoiceid` = '" . $invoice['maindata']['invoiceid'] . "'");
+            $this->log->error( "Message has not sent");
+            //die;
+        }else {
+            $update = array(
+                "send" => "1",
+                "sentdetail" => "Message has been sent successful to ". $operatordetail['mail']
+            );
+            //$this->db->update("b_invoicemain", $update, "`invoiceid` = '" . $invoice['maindata']['invoiceid'] . "'");
+            $this->log->info( "Message has been sent to ".$emailAddresses);
+        }
     }
 
     function checkForCompleteTask(){
