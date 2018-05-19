@@ -1,17 +1,18 @@
 <?php
 
 /** Error reporting */
-error_reporting(E_ALL);
-ini_set('display_errors', TRUE);
-ini_set('display_startup_errors', TRUE);
-date_default_timezone_set('Europe/Samara');
+//error_reporting(E_ALL);
+//ini_set('display_errors', TRUE);
+//ini_set('display_startup_errors', TRUE);
+//date_default_timezone_set('Europe/Samara');
 
 require_once 'Classes/PHPExcel.php';
-include("config.php");
-include("mysqli.php");
-include("log.php");
-$report = new Report($config, 17);
-$report->makeReport();
+
+//include("config.php");
+//include("mysqli.php");
+//include("log.php");
+//$report = new Report($config, 17);
+//$report->makeReport();
 
 class Report{
 
@@ -23,7 +24,7 @@ class Report{
 
     public function __construct($config="", $scheduleid){
         $this->config = $config;
-       // $this->db = new db($config['mysql']);
+        $this->db = new db($config['mysql']);
         $this->log = new Log($config);
 
         $this->log->SetGlobalIndex("REPORT");
@@ -36,7 +37,7 @@ class Report{
     public function makeReport(){
         $this->createFirstSheet();
         $this->createSecondSheet();
-        $this->saveReport();
+        return $this->saveReport();
     }
 
     function createFirstSheet(){
@@ -49,12 +50,12 @@ class Report{
                                      ->setKeywords("отчет об оповещении")
                                      ->setCategory("Отчет");
         // Add some data
-        //$firstTotal = $this->db->select("count(*) from `dial` where scheduleid=".$this->scheduleid);
-        //$this->log->debug($this->db->query->last);
-        $firstTotal = 100;
-        //$firstNotAnswered = $this->db->select("count(*) from `dial` where dialcount>1 AND scheduleid=".$this->scheduleid);
-        //$this->log->debug($this->db->query->last);
-        $firstNotAnswered = 20;
+        $firstTotal = $this->db->select("count(*) from `dial` where scheduleid=".$this->scheduleid);
+        $this->log->debug($this->db->query->last);
+        //$firstTotal = 100;
+        $firstNotAnswered = $this->db->select("count(*) from `dial` where dialcount>1 AND scheduleid=".$this->scheduleid);
+        $this->log->debug($this->db->query->last);
+        //$firstNotAnswered = 20;
 
         $this->objPHPExcel->setActiveSheetIndex(0)
                     ->setCellValue('B2', 'Круг 1')
@@ -65,9 +66,9 @@ class Report{
                     ->setCellValue('B5', 'Не оповещенные номера');
 
         $secondTotal = $firstNotAnswered;
-        //$secondNotAnswered = $this->db->select("count(*) from `dial` where dialcount=3 AND scheduleid=".$this->scheduleid);
-        //$this->log->debug($this->db->query->last);
-        $secondNotAnswered = 15;
+        $secondNotAnswered = $this->db->select("count(*) from `dial` where dialcount=3 AND scheduleid=".$this->scheduleid);
+        $this->log->debug($this->db->query->last);
+        //$secondNotAnswered = 15;
 
         $this->objPHPExcel->setActiveSheetIndex(0)
                     ->setCellValue('B7', 'Круг 2')
@@ -78,9 +79,9 @@ class Report{
                     ->setCellValue('B10', 'Не оповещенные номера');
 
         $thirdTotal = $secondNotAnswered;
-        //$thirdNotAnswered= $this->db->select("count(*) from `dial` where  status=0 AND dialcount=3 AND scheduleid=".$this->scheduleid);
-        //$this->log->debug($this->db->query->last);
-        $thirdNotAnswered = 15;
+        $thirdNotAnswered= $this->db->select("count(*) from `dial` where  status=0 AND dialcount=3 AND scheduleid=".$this->scheduleid);
+        $this->log->debug($this->db->query->last);
+        //$thirdNotAnswered = 15;
 
         $this->objPHPExcel->setActiveSheetIndex(0)
                     ->setCellValue('B12', 'Круг 3')
@@ -100,15 +101,15 @@ class Report{
 
     function createSecondSheet(){
 
-        //$numbersForReport = $this->db->select("phonenumber , status , dialcount from dial where scheduleid=".$this->scheduleid);
-        $numbersForReport = array(
-            0 => array("phonenumber" => 6667,"status" => 1,"dialcount" => 1),
-            1 => array("phonenumber" => 6661,"status" => 0,"dialcount" => 3),
-            2 => array("phonenumber" => 6662,"status" => 1,"dialcount" => 2),
-            3 => array("phonenumber" => 6663,"status" => 1,"dialcount" => 3),
-            4 => array("phonenumber" => 6664,"status" => 1,"dialcount" => 3),
-            5 => array("phonenumber" => 6665,"status" => 0,"dialcount" => 3)
-        );
+        $numbersForReport = $this->db->select("phonenumber , status , dialcount from dial where scheduleid=".$this->scheduleid);
+        //$numbersForReport = array(
+        //    0 => array("phonenumber" => 6667,"status" => 1,"dialcount" => 1),
+        //    1 => array("phonenumber" => 6661,"status" => 0,"dialcount" => 3),
+        //    2 => array("phonenumber" => 6662,"status" => 1,"dialcount" => 2),
+        //    3 => array("phonenumber" => 6663,"status" => 1,"dialcount" => 3),
+        //    4 => array("phonenumber" => 6664,"status" => 1,"dialcount" => 3),
+        //    5 => array("phonenumber" => 6665,"status" => 0,"dialcount" => 3)
+        //);
 
         $objWorkSheet = $this->objPHPExcel->createSheet(1);
         $this->objPHPExcel->setActiveSheetIndex(1)
@@ -146,7 +147,10 @@ class Report{
 
     function saveReport(){
         $objWriter = PHPExcel_IOFactory::createWriter($this->objPHPExcel, 'Excel5');
-        $objWriter->save('test.xls');
+        $filename = "notificationreport".$this->$scheduleid.".xls";
+        $this->log->info("report file name :".$filename);
+        $objWriter->save($filename);
+        return $filename;
     }
 }
 exit;

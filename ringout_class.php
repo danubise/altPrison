@@ -1,5 +1,6 @@
 <?php
 require_once ("Classes/PHPMailer-master/class.phpmailer.php");
+require_once ("report_class.php");
 
 class Ringout{
     private $config=null;
@@ -49,7 +50,7 @@ class Ringout{
 
     }
 
-    function sendemail($taskid, $report){
+    function sendemail($taskid , $filename){
 
         $this->log->info("Send email for task id ".$taskid);
         $email = new PHPMailer();
@@ -67,26 +68,26 @@ class Ringout{
             $email->AddAddress($emailaddress);
         }
 
-        $email->AddAttachment( "test.xls" , "test.xls" );
+        $email->AddAttachment( $filename , $filename );
 
         if(!$email->Send()){
             $this->log->error( "Message could not be sent.");
             $this->log->error( "Mailer Error: " . $email->ErrorInfo);
             $update = array(
-                "send" => "2",
-                "sentdetail" => "Mailer Error: " . $email->ErrorInfo
+                "sendEmail" => "9"
             );
-            //$this->db->update("b_invoicemain",$update, "`invoiceid` = '" . $invoice['maindata']['invoiceid'] . "'");
+            $this->db->update("schedule",$update, "`scheduleid` = '" .$taskid. "'");
+            $this->log->debug($this->db->query->last);
             $this->log->error( "Message has not sent");
-            //die;
         }else {
             $update = array(
-                "send" => "1",
-                "sentdetail" => "Message has been sent successful to ". $operatordetail['mail']
+                "sendEmail" => "1"
             );
-            //$this->db->update("b_invoicemain", $update, "`invoiceid` = '" . $invoice['maindata']['invoiceid'] . "'");
+            $this->db->update("schedule",$update, "`scheduleid` = '" .$taskid. "'");
+            $this->log->debug($this->db->query->last);
             $this->log->info( "Message has been sent to ".$emailAddresses);
         }
+
     }
 
     function checkForCompleteTask(){
@@ -114,7 +115,10 @@ class Ringout{
 
     function createReport($taskid){
         $this->log->info("Creating report for task id ".$taskid);
-        $this->sendemail($taskid,"");
+        $report = new Report($this->config, $taskid);
+        $filename = $report->makeReport();
+        $this->log->info("Sending report file :'".$filename."'");
+        $this->sendemail($taskid, $filename);
     }
 
     function addNumberGroupByTask($tasks){
