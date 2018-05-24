@@ -9,6 +9,7 @@ include("phpagi.php");
 include("mysqli.php");
 include("log.php");
 include("scheduler_class.php");
+include("ringout_class.php");
 
 $scheduler = new Scheduler($config);
 $scheduler->Process();

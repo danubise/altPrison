@@ -38,6 +38,9 @@ class Scheduler{
           "status" => 1
         ));
         $this->log->debug($this->db->query->last);
+
+        $ringout = new Ringout($this->config);
+        $ringout->process();
     }
 
     public function GetPinCode(){
