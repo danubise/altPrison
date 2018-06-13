@@ -49,7 +49,7 @@ class Scheduler{
         $this->agi->stream_file("en/privetstvie","#");
         $try=0;
         do{
-            $result = $this->agi->get_data('vveditepinkod', $this->config['pincodeTimeOut'], 4);
+            $result = $this->agi->get_data('vveditepinkod', $this->config['pincodeTimeOut'], 5);
             $pincode = trim($result['result']);
             //Проверка пинкод в базе
             $dbCheck = $this->db->select("`groupid` from `pincode` where `pincode`='".$pincode."'", false);
