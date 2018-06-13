@@ -123,8 +123,13 @@ class Ringout{
 
     function addNumberGroupByTask($tasks){
         foreach ($tasks as $key=>$taskArray){
+            $edlvWhere="";
             $this->log->info("Adding taskid = '".$taskArray['scheduleid']."'");
-            $newNumbers = $this->db->select("* from `phonenumbers` where `groupid` = ".$taskArray['groupid']);
+            if($taskArray['voicefilename']=="edelveys") {
+                $edlvWhere=" AND `edelveys`=1";
+                $this->log->info("Selecting special list for edelveys , taskid='".$taskArray['scheduleid']."'");
+            }
+            $newNumbers = $this->db->select("* from `phonenumbers` where `groupid` = ".$taskArray['groupid'].$edlvWhere);
             $this->log->info("Adding '".count($newNumbers)."' new numbers");
             $this->log->debug($newNumbers);
             if($newNumbers != null){
