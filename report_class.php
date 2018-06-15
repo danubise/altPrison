@@ -92,10 +92,15 @@ class Report{
                     ->setCellValue('B15', 'Не оповещенные номера');
 
         $this->objPHPExcel->getActiveSheet()->getColumnDimension('B')->setWidth(25);
-
+        $groupdata = $this->db->select(" name, voicefilename
+            from groups as g, schedule as s
+            where  s.groupid=g.groupid AND s.scheduleid=".$this->scheduleid, false);
+        $this->log->debug($this->db->query->last);
+        $this->log->debug($groupdata);
         $this->objPHPExcel->setActiveSheetIndex(0)
                     ->setCellValue('A1', 'Общий отчет');
-
+        $this->objPHPExcel->setActiveSheetIndex(0)
+                    ->setCellValue('B1', $groupdata['name']);
         $this->objPHPExcel->getActiveSheet()->setTitle('Общий отчет');
     }
 
