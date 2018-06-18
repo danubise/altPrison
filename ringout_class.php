@@ -187,10 +187,12 @@ class Ringout{
             fputs($this->socket, $originate);
             $this->db->update("dial",array('action' => 1, 'dialcount' => $numberArray['dialcount'] + 1), "dialid=".$numberArray['dialid']);
             $this->log->debug($this->db->query->last);
-            $callsCount=$callsCount+1;
+            $callsCount++;
             if($callsCount == $this->config['maxMakeCallsInOneStep']){
-                $this->log->info("Max calls in the step is ".$this->config['maxMakeCallsInOneStep'].", breaking proccess.");
-                break;
+                $this->log->info("Max calls in the step is ".$this->config['maxMakeCallsInOneStep'].", breaking proccess. Sleeping for a ".$this->config['sleepTimeCallOriginate']." second");
+                sleep($this->config['sleepTimeCallOriginate']);
+                $this->log->info("Sleep done...");
+                $callsCount=0;
             }
 
         }
