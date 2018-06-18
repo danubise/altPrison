@@ -188,8 +188,8 @@ class Ringout{
             $this->db->update("dial",array('action' => 1, 'dialcount' => $numberArray['dialcount'] + 1), "dialid=".$numberArray['dialid']);
             $this->log->debug($this->db->query->last);
             $callsCount=$callsCount+1;
-            if($callsCount == $this->confid['maxMakeCallsInOneStep']){
-                $this->log->info("Max calls in the step is ".$this->confid['maxMakeCallsInOneStep'].", breaking proccess.");
+            if($callsCount == $this->config['maxMakeCallsInOneStep']){
+                $this->log->info("Max calls in the step is ".$this->config['maxMakeCallsInOneStep'].", breaking proccess.");
                 break;
             }
 
