@@ -56,40 +56,62 @@ class Report{
         $firstNotAnswered = $this->db->select("count(*) from `dial` where dialcount>1 AND scheduleid=".$this->scheduleid, false);
         $this->log->debug($this->db->query->last);
         //$firstNotAnswered = 20;
+        $line="";
+        if($firstNotAnswered > 0){
+            $notDialedNumbers = $this->db->select("phonenumber from `dial` where dialcount>1 AND scheduleid=".$this->scheduleid);
 
+            foreach($notDialedNumbers as $key => $phoneNumber){
+                $line.=$phoneNumber.",";
+            }
+        }
         $this->objPHPExcel->setActiveSheetIndex(0)
                     ->setCellValue('B2', 'Круг 1')
                     ->setCellValue('B3', 'Количество номеров')
                     ->setCellValue('C3', $firstTotal)
                     ->setCellValue('B4', 'Количество неоповещенных')
                     ->setCellValue('C4', $firstNotAnswered)
-                    ->setCellValue('B5', 'Не оповещенные номера');
+                    ->setCellValue('B5', 'Не оповещенные номера')
+                    ->setCellValue('C5', $line);
 
         $secondTotal = $firstNotAnswered;
         $secondNotAnswered = $this->db->select("count(*) from `dial` where dialcount=3 AND scheduleid=".$this->scheduleid, false);
         $this->log->debug($this->db->query->last);
         //$secondNotAnswered = 15;
-
+        $line="";
+        if($secondNotAnswered > 0){
+            $notDialedNumbers = $this->db->select("phonenumber from `dial` where dialcount=3 AND scheduleid=".$this->scheduleid);
+            foreach($notDialedNumbers as $key => $phoneNumber){
+                $line.=$phoneNumber.",";
+            }
+        }
         $this->objPHPExcel->setActiveSheetIndex(0)
                     ->setCellValue('B7', 'Круг 2')
                     ->setCellValue('B8', 'Количество номеров')
                     ->setCellValue('C8', $secondTotal)
                     ->setCellValue('B9', 'Количество неоповещенных')
                     ->setCellValue('C9', $secondNotAnswered)
-                    ->setCellValue('B10', 'Не оповещенные номера');
+                    ->setCellValue('B10', 'Не оповещенные номера')
+                    ->setCellValue('C10', $line);
 
         $thirdTotal = $secondNotAnswered;
         $thirdNotAnswered= $this->db->select("count(*) from `dial` where  status=0 AND dialcount=3 AND scheduleid=".$this->scheduleid, false);
         $this->log->debug($this->db->query->last);
         //$thirdNotAnswered = 15;
-
+        $line="";
+        if($thirdNotAnswered > 0){
+            $notDialedNumbers = $this->db->select("phonenumber from `dial` where status=0 AND dialcount=3 AND scheduleid=".$this->scheduleid);
+            foreach($notDialedNumbers as $key => $phoneNumber){
+                $line.=$phoneNumber.",";
+            }
+        }
         $this->objPHPExcel->setActiveSheetIndex(0)
                     ->setCellValue('B12', 'Круг 3')
                     ->setCellValue('B13', 'Количество номеров')
                     ->setCellValue('C13', $thirdTotal)
                     ->setCellValue('B14', 'Количество неоповещенных')
                     ->setCellValue('C14', $thirdNotAnswered)
-                    ->setCellValue('B15', 'Не оповещенные номера');
+                    ->setCellValue('B15', 'Не оповещенные номера')
+                    ->setCellValue('C15', $line);
 
         $this->objPHPExcel->getActiveSheet()->getColumnDimension('B')->setWidth(25);
         $groupdata = $this->db->select(" name, voicefilename
