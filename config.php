@@ -14,6 +14,7 @@ $config['setMinuteRetryCount'] = 3;
 $config['setTimeRetryCount'] = 3;
 $config['saveScheduleTimeOut'] = 5000;
 $config['maxConcurrentCalls'] = 100;
+$config['maxMakeCallsInOneStep'] = 10;
 $config['manager_host']="localhost";
 $config['manager_port']=5038;
 //$config['manager_login']="";

@@ -172,6 +172,7 @@ class Ringout{
             "Context" => "ringout_play",
             "CallerID" => 0
         );
+        $callsCount=0;
         foreach ($numbers as $id=>$numberArray){
             $amiOriginateConfig['Exten'] = $numberArray['phonenumber'];
             $amiOriginateConfig['Channel'] = "local/".$numberArray['phonenumber']."@ringout";
@@ -186,6 +187,11 @@ class Ringout{
             fputs($this->socket, $originate);
             $this->db->update("dial",array('action' => 1, 'dialcount' => $numberArray['dialcount'] + 1), "dialid=".$numberArray['dialid']);
             $this->log->debug($this->db->query->last);
+            $callsCount=$callsCount+1;
+            if($callsCount == $this->confid['maxMakeCallsInOneStep']){
+                $this->log->info("Max calls in the step is ".$this->confid['maxMakeCallsInOneStep'].", breaking proccess.");
+                break;
+            }
 
         }
     }
