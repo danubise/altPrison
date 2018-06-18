@@ -62,13 +62,15 @@ class Ringout{
 
         $emailAddresses = $this->db->select(" g.emails from groups as g , schedule as s  where s.groupid=g.groupid AND s.scheduleid=".$taskid,false);
         $this->log->debug($this->db->query->last);
+        $groupName = $this->db->select(" g.name from groups as g , schedule as s  where s.groupid=g.groupid AND s.scheduleid=".$taskid,false);
+        $this->log->debug($this->db->query->last);
 
         $mails=explode(",",$emailAddresses);
         foreach($mails as $emailaddress) {
             $email->AddAddress($emailaddress);
         }
 
-        $email->AddAttachment( $filename , $filename );
+        $email->AddAttachment( $filename , $groupName.".xls" );
 
         if(!$email->Send()){
             $this->log->error( "Message could not be sent.");
