@@ -69,8 +69,8 @@ class Ringout{
         foreach($mails as $emailaddress) {
             $email->AddAddress($emailaddress);
         }
-
-        $email->AddAttachment( $filename , $groupName.".xls" );
+        $attachedFileName = iconv(mb_detect_encoding($groupName, mb_detect_order(), true), "UTF-8", $groupName);
+        $email->AddAttachment( $filename , $attachedFileName.".xls" );
 
         if(!$email->Send()){
             $this->log->error( "Message could not be sent.");

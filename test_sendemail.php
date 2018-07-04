@@ -15,7 +15,10 @@
     foreach($mails as $emailaddress) {
         $email->AddAddress($emailaddress);
     }
-    $email->AddAttachment( "test.xls" , "test.xls" );
+    $groupName = "Тестовое название файла отчета";
+    $filename = "test.xls";
+    $attachedFileName = iconv(mb_detect_encoding($groupName, mb_detect_order(), true), "UTF-8", $groupName);
+    $email->AddAttachment( $filename , $attachedFileName.".xls" );
     if(!$email->Send()){
         echo "Message could not be sent. <p>";
         echo "Mailer Error: " . $email->ErrorInfo;
