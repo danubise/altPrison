@@ -122,7 +122,7 @@ class Report{
         $this->objPHPExcel->setActiveSheetIndex(0)
                     ->setCellValue('A1', 'Общий отчет');
         $this->objPHPExcel->setActiveSheetIndex(0)
-                    ->setCellValue('B1', $groupdata['name']);
+                    ->setCellValue('B1',  iconv(mb_detect_encoding($groupdata['name'], mb_detect_order(), true), "UTF-8", $groupdata['name']));
         $this->objPHPExcel->getActiveSheet()->setTitle('Общий отчет');
     }
 
