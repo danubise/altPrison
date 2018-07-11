@@ -114,6 +114,7 @@ class Report{
                     ->setCellValue('C15', $line);
 
         $this->objPHPExcel->getActiveSheet()->getColumnDimension('B')->setWidth(25);
+        $this->db->query('SET NAMES "utf8"');
         $groupdata = $this->db->select(" name, voicefilename
             from groups as g, schedule as s
             where  s.groupid=g.groupid AND s.scheduleid=".$this->scheduleid, false);
@@ -122,7 +123,7 @@ class Report{
         $this->objPHPExcel->setActiveSheetIndex(0)
                     ->setCellValue('A1', 'Общий отчет');
         $this->objPHPExcel->setActiveSheetIndex(0)
-                    ->setCellValue('B1',  iconv(mb_detect_encoding($groupdata['name'], mb_detect_order(), true), "UTF-8", $groupdata['name']));
+                    ->setCellValue('B1',   $groupdata['name']);
         $this->objPHPExcel->getActiveSheet()->setTitle('Общий отчет');
     }
 

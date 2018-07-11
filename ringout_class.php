@@ -38,6 +38,7 @@ class Ringout{
     }
     function checkNewTask(){
     // status 1 - new, 2 -  in progress, 3 - done
+        $this->db->query('SET NAMES "utf8"');
         $newTasks = $this->db->select("* from `schedule` where `status`=1");
         $this->log->debug($this->db->query->last);
         $this->log->debug($newTasks);
@@ -51,7 +52,7 @@ class Ringout{
     }
 
     function sendemail($taskid , $filename){
-
+//        $this->db->query('SET NAMES "utf8"');
         $this->log->info("Send email for task id ".$taskid);
         $email = new PHPMailer();
         $email->CharSet = 'UTF-8';
@@ -59,18 +60,20 @@ class Ringout{
         $email->FromName  = $this->config['emailFrom'];
         $email->Subject   = $this->config['emailTheme'];
         $email->Body      = $this->config['emailBody'];
-
+        $this->db->query('SET NAMES "utf8"');
         $emailAddresses = $this->db->select(" g.emails from groups as g , schedule as s  where s.groupid=g.groupid AND s.scheduleid=".$taskid,false);
         $this->log->debug($this->db->query->last);
         $groupName = $this->db->select(" g.name from groups as g , schedule as s  where s.groupid=g.groupid AND s.scheduleid=".$taskid,false);
         $this->log->debug($this->db->query->last);
+        $this->log->debug("Encoding type = ".mb_detect_encoding($groupName, mb_detect_order(), true));
 
         $mails=explode(",",$emailAddresses);
         foreach($mails as $emailaddress) {
             $email->AddAddress($emailaddress);
         }
-        $attachedFileName = iconv(mb_detect_encoding($groupName, mb_detect_order(), true), "UTF-8", $groupName);
-        $email->AddAttachment( $filename , $attachedFileName.".xls" );
+        $attachedFileName = $groupName.".xls";
+        $this->log->debug("Attached file name : ".$attachedFileName);
+        $email->AddAttachment( $filename , $attachedFileName);
 
         if(!$email->Send()){
             $this->log->error( "Message could not be sent.");
