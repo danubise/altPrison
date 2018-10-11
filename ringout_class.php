@@ -1,5 +1,8 @@
 <?php
-
+/*
+ * danubise@gmail.com
+ * skype:danubise
+ */
 class Ringout{
     private $config=null;
     private $db=null;
@@ -26,20 +29,38 @@ class Ringout{
         $this->log->info("Call to ".$dialid." status ".$status);
         $setvalue=array();
         if($status == "ANSWERED"){
-            $setvalue = array('action' => 0, 'status' => 1);
+            $setvalue = array('Status' => 1);
         }else{
-            $setvalue = array('action' => 0, 'status' => 0);
+            $setvalue = array('Status' => 2);
         }
-        $this->db->update( "dial", $setvalue, "dialid=".$dialid);
+        $this->db->update( "t_BroadsCastSession", $setvalue, "Id=".$dialid);
         $this->log->debug($this->db->query->last);
+        $this->sendSMS($dialid);
         return;
     }
+
+    function sendSMS($sessionID){
+        $smsText = $this->db->select("bcsc.SMSText as SMSText  
+        FROM `t_BroadsCastSession` AS bcs, `t_BroadCastSchedule` AS bcsc 
+        WHERE bcs.Id = '".$sessionID."' AND bcs.BroadCastScheduleId = bcsc.Id AND bcs.SMSSend = 0", false);
+        $this->log->debug("Try to send sms for sessionID " . $sessionID." smsText = '".$smsText."'");
+        if(trim($smsText)  != ""){
+            echo "SEND SMS FUNCTION";
+            $this->db->update("t_BroadsCastSession", array("SMSSend" => 1),"Id='".$sessionID."'");
+        }else{
+            //an error
+            $this->log->error("Please check sms text for sessionID :" . $sessionID);
+            $this->db->update("t_BroadsCastSession", array("SMSSend" => 3),"Id='".$sessionID."'");
+        }
+    }
+
     function checkNewTask(){
     // status 1 - new, 2 -  in progress, 3 - done
         $this->db->query('SET NAMES "utf8"');
         $currentDateTime = date("Y-m-d H:i:s");
-        die;
-        $newTasks = $this->db->select("* from `schedule` where `status`=1");
+        $newTasks = $this->db->select("* FROM `t_BroadCastSchedule` 
+                                            WHERE `StartDateTime` < '".$currentDateTime."' AND
+                                                    `EndDateTime` > '".$currentDateTime."'");
         $this->log->debug($this->db->query->last);
         $this->log->debug($newTasks);
         if($newTasks != null){
@@ -48,81 +69,33 @@ class Ringout{
         }else{
             $this->log->info("Have no new task");
         }
-
-    }
-
-
-    function checkForCompleteTask(){
-        return ;
-        $this->log->info("Checking for complete task");
-        //  проверить наличие номеров до которых еще нужно дозвонится, если таковых нет то отключить таску и отправить отчет.
-        $activeTask = $this->db->select ("scheduleid from `schedule` where `status`=2");
-        $this->log->debug($activeTask);
-        if($activeTask != null){
-            foreach ($activeTask as $key=>$scheduleid){
-                $this->log->info("Task with id ".$scheduleid." in progress");
-                $countInprogressNumbers = $this->db->select(" count(*) from schedule as s,dial as d where
-                    s.scheduleid = d.scheduleid AND s.status=2 AND d.status=0 AND (d.dialcount < 3 OR d.action=1)
-                    AND s.scheduleid=".$scheduleid, false);
-
-                $this->log->debug($this->db->query->last);
-                $this->log->debug($countInprogressNumbers);
-                if($countInprogressNumbers == 0 ){
-                    $this->db->update("schedule", array("status" => 3), "scheduleid=".$scheduleid);
-                    $this->log->debug($this->db->query->last);
-                    $this->createReport($scheduleid);
-                }
-            }
-        }
-    }
-
-    function createReport($taskid){
-        $this->log->info("Creating report for task id ".$taskid);
-        $report = new Report($this->config, $taskid);
-        $filename = $report->makeReport();
-        //$this->log->info("Sending report file :'".$filename."'");
-        $this->sendemail($taskid, $filename);
     }
 
     function addNumberGroupByTask($tasks){
         foreach ($tasks as $key=>$taskArray){
-            $edlvWhere="";
-            $this->log->info("Adding taskid = '".$taskArray['scheduleid']."'");
-            if($taskArray['voicefilename']=="edelveys") {
-                $edlvWhere=" AND `edelveys`=1";
-                $this->log->info("Selecting special list for edelveys , taskid='".$taskArray['scheduleid']."'");
-            }
-            $newNumbers = $this->db->select("* from `phonenumbers` where `groupid` = ".$taskArray['groupid'].$edlvWhere);
+            $newNumbers = $this->db->select("* from `t_ContactList`");
             $this->log->info("Adding '".count($newNumbers)."' new numbers");
             $this->log->debug($newNumbers);
+
             if($newNumbers != null){
-                $this->db->update("schedule", array("status" => 2), "scheduleid=".$taskArray['scheduleid']);
-                $this->log->debug($this->db->query->last);
                 foreach($newNumbers as $numberid => $numberData){
-                    $this->db->insert("dial", array(
-                        "groupid" => $taskArray['groupid'],
-                        "phonenumber" => $numberData['phone'],
+                    $this->db->insert("t_BroadsCastSession", array(
+                        "ContactId" => $numberData['Id'],
+                        "BroadCastScheduleId" => $taskArray['Id'],
                         "status" => 0,
-                        "scheduleid" => $taskArray['scheduleid'],
-                        "dialcount" => 0,
-                        "action" => 0,
-                        "voicerecord" => $taskArray['voicefilename']
+                        "SMSSend" => 0
                     ));
                     $this->log->debug($this->db->query->last);
                 }
             }else{
-                $this->db->update("schedule", array("status" => 3), "scheduleid=".$taskArray['scheduleid']);
-                $this->log->debug($this->db->query->last);
-
-                $this->log->error("Have no any numbers for this task");
+                $this->log->error("We have no any numbers for this task");
+                die;
             }
         }
     }
 
     public function process(){
-        $this->checkForCompleteTask();
         $this->checkNewTask();
-        //die;
         $newNumbers = $this->checkNumbers();
         $this->dial($newNumbers);
     }
@@ -130,40 +103,28 @@ class Ringout{
     function dial($numbers){
         $this->getConnection();
         $amiOriginateConfig= array(
-            //'Channel' => 'local/12345678@from-trunk',
             "Exten" => "s",
             "Context" => "ringout_play",
             "CallerID" => 0
         );
-        $callsCount=0;
         foreach ($numbers as $id=>$numberArray){
-            $amiOriginateConfig['Exten'] = $numberArray['phonenumber'];
-            $amiOriginateConfig['Channel'] = "local/".$numberArray['phonenumber']."@ringout";
-            $amiOriginateConfig['CallerID'] = $numberArray['groupid'];
+            $amiOriginateConfig['Exten'] = $numberArray['Phone'];
+            $amiOriginateConfig['Channel'] = "local/".$numberArray['Phone']."@ringout";
+            $amiOriginateConfig['CallerID'] = $this->config['CallerID'];
             $amiOriginateConfig['Variable'] = array(
-                "__dialid" => $numberArray['dialid'],
-                "__voicerecord" => $numberArray['voicerecord']
+                "__dialid" => $numberArray['Id'],
+                "__voicerecord" => $numberArray['RecordingFile']
             );
 
             $originate = $this->ami->Originate($amiOriginateConfig);
             $this->log->debug($originate);
             fputs($this->socket, $originate);
-            $this->db->update("dial",array('action' => 1, 'dialcount' => $numberArray['dialcount'] + 1), "dialid=".$numberArray['dialid']);
-            $this->log->debug($this->db->query->last);
-            $callsCount++;
-            if($callsCount == $this->config['maxMakeCallsInOneStep']){
-                $this->log->info("Max calls in the step is ".$this->config['maxMakeCallsInOneStep'].", breaking proccess. Sleeping for a ".$this->config['sleepTimeCallOriginate']." second");
-                sleep($this->config['sleepTimeCallOriginate']);
-                $this->log->info("Sleep done...");
-                $callsCount=0;
-            }
-
         }
     }
 
     public function getConnection()
         {
-            $this->socket = fsockopen($this->config['manager_host'], $this->config['manager_port'], $errno, $errstr, 10);
+            $this->socket = fsockopen($this->config['manager']['host'], $this->config['manager']['port'], $errno, $errstr, 10);
             $this->log->info($this->socket, "socket");
 
             if (!$this->socket) {
@@ -172,11 +133,10 @@ class Ringout{
                 die;
             } else {
                 $this->log->info("start main module");
-                date_default_timezone_set('Europe/Moscow');
 
                 $login_data = array(
-                    "UserName" => $this->config['manager_login'],
-                    "Secret" => $this->config['manager_password']
+                    "UserName" => $this->config['manager']['login'],
+                    "Secret" => $this->config['manager']['password']
                 );
                 $login = $this->ami->Login($login_data);
                 $this->log->info($login, "Authentication");
@@ -213,13 +173,14 @@ class Ringout{
 
 
     function checkNumbers(){
-        $inDialCall = $this->db->select ("count(*) from `dial` where `action` = 1", false );
+        $inDialCall = $this->db->select ("count(*) FROM `t_BroadsCastSession` WHERE `Status` = 0", false );
         $this->log->info("Concurrent calls = ".$inDialCall);
-        $limit = $this->config['maxConcurrentCalls'] - $inDialCall;
-        $this->log->info("Select new number = ".$limit);
-        $newNumbers = $this->db->select("* FROM `dial` WHERE `status` = 0 AND `action` = 0 AND `dialcount` < 3 ORDER BY `dialcount` ASC LIMIT ".$limit);
+        $newNumbers = $this->db->select("bcs.Id AS Id, bcs.Status AS Status, cl.Phone AS Phone, bcsc.SMSText as SMSText , 
+        bcsc.RecordingFile as RecordingFile 
+        FROM `t_BroadsCastSession` AS bcs, `t_ContactList` AS cl, `t_BroadCastSchedule` AS bcsc 
+        WHERE bcs.Status = 0 AND bcs.ContactId = cl.Id AND bcs.BroadCastScheduleId = bcsc.Id AND bcs.SMSSend = 0");
         $this->log->debug($this->db->query->last);
-        //$this->log->debug($newNumbers);
+        $this->log->debug($newNumbers);
         if($newNumbers == null){
             $this->log->info("Have no any number for dial. Exit");
             die;

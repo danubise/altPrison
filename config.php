@@ -1,8 +1,10 @@
 <?php
-include_once ('/var/www/html/dialmanager/internal_config.php');
-$config['log_file']=  "/var/log/asterisk/ringing_system.log";
-$config['log_write'] = "file"; //file
-$config['log_level'] = "all";
+/*
+ * danubise@gmail.com
+ * skype:danubise
+ */
+include_once ('/var/www/html/dialmanager/internal_config.php'); //REMARK IT
+;
 $config['manager']=array(
     'login'=>"login",
     'password'=>"password",
@@ -16,5 +18,9 @@ $config['mysql'] = array(
     'host' => '127.0.0.1'
 );
 
-$config = $_config;
+$config = $_config; //REMARK IT
+$config['log_file']=  "/var/log/asterisk/ringing_system.log";
+$config['log_write'] = ""; //file
+$config['log_level'] = "all";
+$config['CallerID']= "123456789012";
 ?>
